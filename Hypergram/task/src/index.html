@@ -3,8 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Hypergram</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+          rel="stylesheet">
 </head>
 <body>
-
+<div id="main">
+    <div id="image">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="menu">
+        <label for="file-input" id="menu-file-input" class="menu-button">UPLOAD FILE</label>
+        <input type="file" id="file-input" name="file-input">
+        <div id="settings">
+            <div>
+                <label for="brightness">brightness</label>
+                <input type="range" id="brightness" class="range-setup" name="brightness">
+            </div>
+            <div>
+                <label for="contrast">contrast</label>
+                <input type="range" id="contrast" class="range-setup" name="contrast">
+            </div>
+            <div>
+                <label for="transparent">transparent</label>
+                <input type="range" id="transparent" class="range-setup" name="transparent">
+            </div>
+        </div>
+        <button type="button" id="save-button" class="menu-button" name="save-button">SAVE IMAGE</button>
+    </div>
+</div>
+<script src="main.js"></script>
 </body>
 </html>

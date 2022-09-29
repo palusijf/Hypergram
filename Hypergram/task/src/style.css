@@ -1,0 +1,68 @@
+* {
+    font-family: 'Roboto', sans-serif;
+!important;
+}
+
+html,
+body {
+    height: 100vh;
+    margin: 0 0;
+}
+
+#main {
+    height: 100vh;
+    display: flex;
+}
+
+#image {
+    width: 120vh;
+}
+
+#menu {
+    margin: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    row-gap: 100px;
+    width: 300px;
+    background-color: #84a9c6;
+    padding: 100px 50px;
+}
+
+#settings {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    row-gap: 50px;
+}
+
+.range-setup {
+    width: 100%;
+}
+
+#file-input {
+    display: none;
+}
+
+.menu-button {
+    text-align: center;
+    padding: 10px 40px;
+    border-style: none;
+    color: white;
+    font-size: 16px;
+}
+
+#menu-file-input {
+    background-color: #e79ea9;
+}
+
+#save-button {
+    background-color: #676984;
+    color: black;
+    margin-top: 20px;
+}
+
+.menu-button:hover {
+    color: #e79ea9;
+    background-color: #fff !important;
+}

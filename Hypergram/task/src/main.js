@@ -1,128 +1,69 @@
-let ImageDrawer = (function () {
+let fileInput = document.getElementById("file-input");
+let canvas = document.getElementById("draw_area");
+let brightness = document.getElementById("brightness");
+let contrast = document.getElementById("contrast");
+let transparent = document.getElementById("transparent");
+let originalPixels = null;
 
-    let elements = {
-        fileInput: null,
-        canvas: null,
-        brightnessSlider: null,
-        contrastSlider: null,
-        transparentSlider: null,
-    }
+fileInput.addEventListener("change", uploadImage);
+brightness.addEventListener("change", (e) => updateImage(e.target, contrast, transparent));
+contrast.addEventListener("change", (e) => updateImage(brightness, e.target, transparent));
+transparent.addEventListener("change", (e) => updateImage(brightness, contrast, e.target));
 
-    let originalPixels = null;
+function updateImage(brightness, contrast, transparent) {
+    const pixels = processImage(brightness, contrast, transparent);
+    const imageData = getImageData();
+    imageData.data.set(pixels);
+    canvas.getContext("2d").putImageData(imageData, 0, 0);
+}
 
-    function init() {
-        elements = {
-            fileInput: document.getElementById("file-input"),
-            canvas: document.getElementById("draw_area"),
-            brightnessSlider: document.getElementById("brightness"),
-            contrastSlider: document.getElementById("contrast"),
-            transparentSlider: document.getElementById("transparent"),
-        };
+function getImageData() {
+    const ctx = canvas.getContext("2d");
+    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
 
-        elements.fileInput.addEventListener("change", uploadImage);
-        elements.brightnessSlider.addEventListener("change",
-            (event) => modifyColorProprieties(event.target, elements.contrastSlider, elements.transparentSlider));
-        elements.contrastSlider.addEventListener("change",
-            (event) => modifyColorProprieties(elements.brightnessSlider, event.target, elements.transparentSlider));
-        elements.transparentSlider.addEventListener("change",
-            (event) => modifyColorProprieties(elements.brightnessSlider, elements.contrastSlider, event.target));
-    }
+function uploadImage(event) {
+    if (event.target.files) {
+        let file = event.target.files[0];
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function (e) {
+            let image = new Image();
+            image.src = String(e.target.result);
+            image.onload = function (ev) {
+                canvas.width = ev.target.width;
+                canvas.height = ev.target.height;
+                canvas.getContext("2d").drawImage(image, 0, 0);
 
-    function uploadImage(event) {
-        if (event.target.files) {
-            let file = event.target.files[0];
-            let reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = function (e) {
-                let image = new Image();
-                image.src = String(e.target.result);
-                image.onload = function (ev) {
-                    const width = ev.target.width;
-                    const height = ev.target.height;
-                    drawImage(image, width, height);
-
-                    const imageData = getImageData();
-                    setOriginalPixels(imageData.data)
-                };
+                originalPixels = getImageData();
             };
-        }
+        };
     }
+}
 
-    function drawImage(image, width, height) {
-        elements.canvas.width = width;
-        elements.canvas.height = height;
-
-        const ctx = getCanvasContext2D();
-        ctx.drawImage(image, 0, 0);
+function processImage(brightness, contrast, transparent) {
+    const tempPixels = originalPixels.slice();
+    const contrastFactor = 259 * (255 + contrast) / (255 * (259 - contrast));
+    for (let i = 0; i < tempPixels.length; i += 4) {
+        // ================================================================================ red =======
+        tempPixels[i] = contrastFactor * (tempPixels[i] - 128) + 128 + brightness;
+        // ================================================================================ green =====
+        tempPixels[i + 1] = contrastFactor * (tempPixels[i + 1] - 128) + 128 + brightness;
+        // ================================================================================ blue ======
+        tempPixels[i + 2] = contrastFactor * (tempPixels[i + 2] - 128) + 128 + brightness;
+        // ================================================================================ alpha =====
+        tempPixels[i + 3] *= transparent;
     }
+    return tempPixels;
+}
 
-    function getImageData() {
-        const ctx = getCanvasContext2D();
-        return ctx.getImageData(0, 0, elements.canvas.width, elements.canvas.height);
-    }
+function downloadImage() {
+    let image = canvas.toDataURL();
+    let tmpLink = document.createElement('a');
+    tmpLink.download = 'result.png';
+    tmpLink.href = image;
 
-    function getCanvasContext2D() {
-        return elements.canvas.getContext("2d");
-    }
-
-    function setOriginalPixels(_originalPixels) {
-        originalPixels = _originalPixels;
-    }
-
-    function getModifiedPixels(brightness, contrast, transparent) {
-        const tempPixels = originalPixels.slice();
-        const contrastFactor = getContrastFactor(contrast);
-        for (let i = 0; i < tempPixels.length; i += 4) {
-            // Red
-            let newContrastValue = getNewContrast(tempPixels[i], contrastFactor);
-            tempPixels[i] = getNewBrightness(newContrastValue, brightness);
-
-            // Green
-            newContrastValue = getNewContrast(tempPixels[i + 1], contrastFactor);
-            tempPixels[i + 1] = getNewBrightness(newContrastValue, brightness);
-
-            // Blue
-            newContrastValue = getNewContrast(tempPixels[i + 2], contrastFactor);
-            tempPixels[i + 2] = getNewBrightness(newContrastValue, brightness);
-
-            // ALPHA
-            tempPixels[i + 3] = getNewTransparent(tempPixels[i + 3], transparent);
-        }
-        return tempPixels;
-    }
-
-    function modifyColorProprieties(brightnessSlider, contrastSlider, transparentSlider) {
-        const pixels = getModifiedPixels(brightnessSlider.valueAsNumber, contrastSlider.valueAsNumber, transparentSlider.valueAsNumber);
-        redrawImage(pixels);
-    }
-
-    function redrawImage(pixels) {
-        const imageData = getImageData();
-        imageData.data.set(pixels);
-        getCanvasContext2D().putImageData(imageData, 0, 0);
-    }
-
-    function getContrastFactor(contrast) {
-        return 259 * (255 + contrast) / (255 * (259 - contrast));
-    }
-
-    function getNewTransparent(alpha, transparent) {
-        return alpha * transparent;
-    }
-
-    function getNewContrast(colorChannel, contrastFactor) {
-        return contrastFactor * (colorChannel - 128) + 128;
-    }
-
-    function getNewBrightness(colorChannel, brightness) {
-        return colorChannel + brightness;
-    }
-
-    return {
-        init: init,
-    }
-})();
-
-
-
-ImageDrawer.init();
+    document.body.appendChild(tmpLink);
+    tmpLink.click();
+    document.body.removeChild(tmpLink);
+}
